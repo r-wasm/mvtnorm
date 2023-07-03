@@ -26,6 +26,12 @@
 *
 * <TH>
 *
+      MODULE GLOBALS
+         IMPLICIT NONE
+         INTEGER NUC
+         DOUBLE PRECISION H1, H2, H3, R23, RUA, RUB, AR, RUC
+      END MODULE GLOBALS
+*
       SUBROUTINE TVTLRCALL( NU, H, R, EPSI, TVTL )
 *
 *     A function for computing trivariate normal and t-probabilities.
@@ -54,13 +60,14 @@
 *       Pullman, WA 99164-3113
 *       Email : alangenz@wsu.edu
 *
+      USE GLOBALS
+      IMPLICIT NONE
       EXTERNAL TVTMFN, ADONET, BVTL
-      INTEGER NU, NUC
-      DOUBLE PRECISION H(3), H1, H2, H3, R(3), R12, R13, R23, EPSI
+      INTEGER NU
+      DOUBLE PRECISION H(3), R(3), R12, R13, EPSI
       DOUBLE PRECISION ONE, ZRO, EPS, TVT, TVTL
-      DOUBLE PRECISION RUA, RUB, AR, RUC, PT, BVTL, PHID, ADONET, TVTMFN
+      DOUBLE PRECISION PT, BVTL, PHID, ADONET, TVTMFN
       PARAMETER ( ZRO = 0, ONE = 1 )
-      COMMON /TVTMBK/ H1, H2, H3, R23, RUA, RUB, AR, RUC, NUC
       EPS = MAX( 1D-14, EPSI )
       PT = ASIN(ONE)
       NUC = NU
@@ -127,21 +134,21 @@
 *
 *     Computes Plackett formula integrands
 *
-      INTEGER NU
-      DOUBLE PRECISION X, H1, H2, H3, R23, RUA, RUB, AR, RUC
+      USE GLOBALS
+      IMPLICIT NONE
+      DOUBLE PRECISION X
       DOUBLE PRECISION R12, RR2, R13, RR3, R, RR, ZRO, PNTGND
       PARAMETER ( ZRO = 0 )
-      COMMON /TVTMBK/ H1, H2, H3, R23, RUA, RUB, AR, RUC, NU
       TVTMFN = 0
       CALL SINCS( RUA*X, R12, RR2 )
       CALL SINCS( RUB*X, R13, RR3 )
       IF ( ABS(RUA) .GT. 0 )
-     &     TVTMFN = TVTMFN + RUA*PNTGND( NU, H1,H2,H3, R13,R23,R12,RR2 )
+     &     TVTMFN = TVTMFN + RUA*PNTGND( NUC, H1,H2,H3, R13,R23,R12,RR2)
       IF ( ABS(RUB) .GT. 0 )
-     &     TVTMFN = TVTMFN + RUB*PNTGND( NU, H1,H3,H2, R12,R23,R13,RR3 )
-      IF ( NU .GT. 0 ) THEN
+     &     TVTMFN = TVTMFN + RUB*PNTGND( NUC, H1,H3,H2, R12,R23,R13,RR3)
+      IF ( NUC .GT. 0 ) THEN
          CALL SINCS( AR + RUC*X, R, RR )
-         TVTMFN = TVTMFN - RUC*PNTGND( NU, H2, H3, H1, ZRO, ZRO, R, RR )
+         TVTMFN = TVTMFN - RUC*PNTGND( NUC, H2, H3, H1, ZRO, ZRO, R, RR)
       END IF
       END
 *
