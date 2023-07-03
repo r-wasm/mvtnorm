@@ -60,7 +60,6 @@
       INTEGER N, ND, NU, INFIN(*), MAXPTS, INFORM, IVLS
       DOUBLE PRECISION CORREL(*), LOWER(*), UPPER(*), DELTA(*), RELEPS, 
      &                 ABSEPS, ERROR, VALUE, E(1), V(1)
-      COMMON /PTBLCK/IVLS
       IVLS = 0
 
       IF ( N .GT. 1000 .OR. N .LT. 1 ) THEN
