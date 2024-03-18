@@ -1,6 +1,14 @@
 *
 *    $Id: mvt.f 603 2023-08-17 06:39:20Z thothorn $
 *
+      MODULE GLOBALS
+         IMPLICIT NONE
+         INTEGER NL
+         PARAMETER ( NL = 1000 )
+         INTEGER NU, INFI(NL)
+         DOUBLE PRECISION SNU, COV(NL*(NL+1)/2), A(NL), B(NL), DL(NL)
+      END MODULE GLOBALS
+
       SUBROUTINE MVTDST( N, NU, LOWER, UPPER, INFIN, CORREL, DELTA, 
      &                   MAXPTS, ABSEPS, RELEPS, ERROR, VALUE, INFORM )       
 *
@@ -82,6 +90,25 @@
       
       END
 *
+      SUBROUTINE MVINTS( N, NUIN, CORREL, LOWER, UPPER, DELTA, INFIN,
+     &                   ND, VL, ER, INFORM)
+      USE GLOBALS
+      IMPLICIT NONE
+      INTEGER N, NUIN, INFIN(*)
+      DOUBLE PRECISION LOWER(*), UPPER(*), CORREL(*), DELTA(*)
+      INTEGER ND, INFORM 
+      DOUBLE PRECISION Y(NL), VL, ER
+*
+*     Entry point for intialization.
+*
+*     Initialization and computation of covariance Cholesky factor.
+*
+      CALL MVSORT( N, LOWER, UPPER, DELTA, CORREL, INFIN, Y, .TRUE.,
+     &            ND,     A,     B,    DL,    COV,  INFI, INFORM )
+      NU = NUIN
+      CALL MVSPCL( ND, NU, A, B, DL, COV, INFI, SNU, VL, ER, INFORM )
+      END
+*
       SUBROUTINE MVSUBR( N, W, F )
 *     
 *     Integrand subroutine
@@ -93,13 +120,13 @@
 *     reported NF as being unused. Removed NF from MVSUBR and later calls to FUNSUB
 *     2023/08/17
 *
-      INTEGER N, NUIN, INFIN(*), NL
-      DOUBLE PRECISION W(*),F(*), LOWER(*),UPPER(*), CORREL(*), DELTA(*)
-      PARAMETER ( NL = 1000 )
-      INTEGER INFI(NL), NU, ND, INFORM, NY 
-      DOUBLE PRECISION COV(NL*(NL+1)/2), A(NL), B(NL), DL(NL), Y(NL)
-      DOUBLE PRECISION MVCHNV, SNU, R, VL, ER, DI, EI
-      SAVE NU, SNU, INFI, A, B, DL, COV
+      USE GLOBALS
+      IMPLICIT NONE
+      INTEGER N
+      DOUBLE PRECISION W(*),F(*)
+      INTEGER NY
+      DOUBLE PRECISION Y(NL)
+      DOUBLE PRECISION MVCHNV, R, DI, EI
       IF ( NU .LE. 0 ) THEN
          R = 1
          CALL MVVLSB( N+1, W, R, DL,INFI,A,B,COV, Y, DI,EI, NY, F(1) )
@@ -107,19 +134,6 @@
          R = MVCHNV( NU, W(N) )/SNU
          CALL MVVLSB( N  , W, R, DL,INFI,A,B,COV, Y, DI,EI, NY, F(1) )
       END IF
-      RETURN
-*
-*     Entry point for intialization.
-*
-      ENTRY MVINTS( N, NUIN, CORREL, LOWER, UPPER, DELTA, INFIN, 
-     &     ND, VL, ER, INFORM )
-*
-*     Initialization and computation of covariance Cholesky factor.
-*
-      CALL MVSORT( N, LOWER, UPPER, DELTA, CORREL, INFIN, Y, .TRUE.,
-     &            ND,     A,     B,    DL,    COV,  INFI, INFORM )
-      NU = NUIN
-      CALL MVSPCL( ND, NU, A, B, DL, COV, INFI, SNU, VL, ER, INFORM )
       END
 *
       SUBROUTINE MVSPCL( ND, NU, A,B,DL, COV, INFI, SNU, VL,ER, INFORM )
